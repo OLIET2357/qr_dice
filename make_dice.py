@@ -1,11 +1,8 @@
+import random
 import qrcode
 import numpy as np
 from cube_model import cube_model
 from stl import mesh
-# TOO SLOW
-PLT_3D = False
-if PLT_3D:
-    import matplotlib.pyplot as plt
 
 
 def cube_at(x, y, z):
@@ -62,31 +59,34 @@ assert len(m1_6) == len(m2_5) == len(m3_4)
 
 S = len(m1_6)
 
-voxel_qr = np.full((S,)*3, True)
+voxel_qr = np.zeros((S,)*3)
 
-
-for j in range(S):
-    for i in range(S):
-        if not m1_6[j][S-1-i]:
-            for k in range(S):
-                voxel_qr[i][j][k] = False
-
-for k in range(S):
-    for j in range(S):
-        if not m2_5[S-1-k][j]:
-            for i in range(S):
-                voxel_qr[i][j][k] = False
 
 for i in range(S):
-    for k in range(S):
-        if not m3_4[S-1-i][S-1-k]:
-            for j in range(S):
-                voxel_qr[i][j][k] = False
+    for j in range(S):
+        for k in range(S):
+            voxel_qr[i][j][k] = m1_6[i][j] and \
+                m2_5[j][k] and m3_4[k][i]
 
-if PLT_3D:
-    ax = plt.subplot(projection='3d')
-    ax.voxels(voxel_qr, color='black')
-    plt.show()
+c1_6 = np.zeros((S, S))
+c2_5 = np.zeros((S, S))
+c3_4 = np.zeros((S, S))
+for i in range(S):
+    for j in range(S):
+        for k in range(S):
+            if voxel_qr[i][j][k]:
+                c1_6[i][j] += 1
+                c2_5[j][k] += 1
+                c3_4[k][i] += 1
+
+for i in random.sample(range(S), S):
+    for j in random.sample(range(S), S):
+        for k in random.sample(range(S), S):
+            if c1_6[i][j] > 1 and c2_5[j][k] > 1 and c3_4[k][i] > 1:
+                voxel_qr[i][j][k] = False
+                c1_6[i][j] -= 1
+                c2_5[j][k] -= 1
+                c3_4[k][i] -= 1
 
 mesh_qr = voxel_to_mesh(voxel_qr)
 
